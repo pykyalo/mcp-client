@@ -7,7 +7,7 @@ from mcp.client.stdio import stdio_client
 
 
 from mcp_client import chat
-from mcp_client.handlers import OpenAIQueryHandler
+from mcp_client.handlers import ClaudeQueryHandler
 
 
 class MCPClient:
@@ -33,23 +33,19 @@ class MCPClient:
     async def __aexit__(self, *_) -> None:
         await self.exit_stack.aclose()
 
-
     async def _connect_to_server(self) -> ClientSession:
         try:
-            read, write =  await self.exit_stack.enter_async_context(
+            read, write = await self.exit_stack.enter_async_context(
                 stdio_client(
-                    server = StdioServerParameters(
+                    server=StdioServerParameters(
                         command="sh",
-                        args=[
-                            "-c",
-                            f"{sys.executable} {self.server_path} 2>/dev/null"
-                        ],
-                        env=None
+                        args=["-c", f"{sys.executable} {self.server_path} 2>/dev/null"],
+                        env=None,
                     )
                 )
             )
 
-            client_session = await  self.exit_stack.enter_async_context(
+            client_session = await self.exit_stack.enter_async_context(
                 ClientSession(read, write)
             )
             await client_session.initialize()
@@ -64,18 +60,21 @@ class MCPClient:
         print("=" * 50)
 
         sections = {
-            "tools": self.client_session.list_tools, 
+            "tools": self.client_session.list_tools,
             "prompts": self.client_session.list_prompts,
             "resources": self.client_session.list_resources,
         }
 
-        for  section, listing_method in sections.items():
+        for section, listing_method in sections.items():
             await self._list_section(section, listing_method)
 
         print("\n" + "=" * 50)
 
-
-    async  def _list_section(self, section: str, list_method: Callable[[], Awaitable[Any]],) -> None:
+    async def _list_section(
+        self,
+        section: str,
+        list_method: Callable[[], Awaitable[Any]],
+    ) -> None:
         try:
             items = getattr(await list_method(), section)
             if items:
@@ -87,16 +86,13 @@ class MCPClient:
                     print(f" > {item.name} - {description}")
             else:
                 print(f"\n {section.upper()}: None available")
-        except  Exception as e:
+        except Exception as e:
             print(f"\n{section.upper()}: Error - {e}")
 
-
     async def run_chat(self) -> None:
-        """Start interactive chat with MCP server using OpenAI."""
+        """Start interactive chat with MCP server using Claude."""
         try:
-            handler = OpenAIQueryHandler(self.client_session)
+            handler = ClaudeQueryHandler(self.client_session)
             await chat.run_chat(handler)
         except RuntimeError as e:
             print(e)
-
-
