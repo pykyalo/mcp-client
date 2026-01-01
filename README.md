@@ -49,3 +49,10 @@ This project uses:
 ## License
 
 Add your license information here.
+
+## TODO
+
+- [ ] Add more tools
+- [ ] Add more models
+- [ ] Add more features
+- [ ] Learn more on MCP - https://modelcontextprotocol.io/docs/learn/architecture
